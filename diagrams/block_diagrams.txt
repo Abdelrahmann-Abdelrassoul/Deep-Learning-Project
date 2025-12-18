@@ -1,0 +1,8 @@
+AUTOENCODER MODEL
+-----------------
+Frame → CNN Encoder → Latent Space → CNN Decoder → Reconstructed Frame
+Key Frame = High Reconstruction Error
+
+CNN + LSTM MODEL
+----------------
+Frames → CNN → Feature Sequence → LSTM → Importance Score → Key Frame
