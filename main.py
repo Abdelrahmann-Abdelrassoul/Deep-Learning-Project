@@ -19,8 +19,8 @@ SUMME_FRAMES_DIR = "data/SumMe/frames"
 FPS = 2
 
 IMG_SIZE = (224, 224)
-BATCH_SIZE_AE = 5
-EPOCHS_AE = 3
+BATCH_SIZE_AE = 16
+EPOCHS_AE = 15
 
 SEQ_LEN = 20
 BATCH_SIZE_LSTM = 2
@@ -42,15 +42,16 @@ TEST_FRAMES_DIR = "data/test/frames"
 # frames_dataset = load_frames_dataset(SUMME_FRAMES_DIR, img_size=IMG_SIZE)
 # print(f"[INFO] Total frames loaded: {frames_dataset.shape[0]}")
 
-# -----------------------------
-# Step 3: Train Autoencoder
-# -----------------------------
-# print("[STEP 3] Training Autoencoder...")
-# train_autoencoder(
-#     frames_dataset,
+# # -----------------------------
+# # Step 3: Train Autoencoder
+# # -----------------------------
+# print("[STEP 3] Training Autoencoder (auto-tuned)...")
+
+# ae_model, ae_history = train_autoencoder(
+#     frames=frames_dataset,
 #     img_size=IMG_SIZE,
 #     batch_size=BATCH_SIZE_AE,
-#     epochs=EPOCHS_AE,
+#     max_epochs=50,          # ← NOT fixed epochs anymore
 #     save_path="models/autoencoder.h5"
 # )
 
@@ -60,12 +61,13 @@ keyframes_ae, errors_ae = detect_keyframes_autoencoder(
     frames_dir=TEST_FRAMES_DIR,
     model_path="models/autoencoder.h5",
     img_size=IMG_SIZE,
-    threshold_mode="mean_std",   # or "percentile"
-    percentile=90,              # only used if threshold_mode="percentile"
+    diff_percentile=90,
+    min_scene_len=3,
     visualize=True,
     save_keyframes=True,
     output_dir="results/autoencoder_keyframes"
 )
+
 
 print("[DONE] Autoencoder keyframe detection completed.")
 
