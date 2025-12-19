@@ -43,7 +43,7 @@ def extract_frames(video_path, output_dir, fps=2):
     return saved
 
 
-def extract_summe_dataset(summe_dir, output_root="data/SumMe/frames", fps=2):
+def extract_summe_dataset(summe_dir, output_root, fps=2):
     """
     Extract frames from all videos in the SumMe dataset.
     Saves frames in separate folders for each video.
@@ -67,4 +67,8 @@ def extract_summe_dataset(summe_dir, output_root="data/SumMe/frames", fps=2):
 if __name__ == "__main__":
     SUMME_VIDEO_DIR = "../data/SumMe/videos"
     OUTPUT_FRAME_DIR = "../data/SumMe/frames"
-    extract_summe_dataset(SUMME_VIDEO_DIR, OUTPUT_FRAME_DIR,fps=2)
+    #extract_summe_dataset(SUMME_VIDEO_DIR, OUTPUT_FRAME_DIR,fps=2)
+
+    TEST_VIDEO_DIR = "../data/test/video"
+    TEST_OUTPUT_FRAME_DIR = "../data/test/frames"
+    extract_summe_dataset(TEST_VIDEO_DIR, TEST_OUTPUT_FRAME_DIR,fps=2)
