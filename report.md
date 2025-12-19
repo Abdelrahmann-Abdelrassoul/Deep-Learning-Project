@@ -34,11 +34,14 @@ KeyFrameDetection/
 └── README.md
 
 ```
+## Journey
 “Scene boundaries are detected by large temporal changes in autoencoder reconstruction error, rather than absolute error values. Each scene is represented by the middle frame.”
 
 “Scene boundaries were detected using changes in autoencoder reconstruction error. Frames were grouped into scenes, and a single representative frame with maximum reconstruction error was selected per scene.”
 
 “To avoid over-segmentation caused by transient reconstruction error spikes, short adjacent scenes were merged using a minimum temporal duration constraint.”
+
+“Color differences were initially observed due to unnecessary color space conversion during frame saving. Since frames were loaded and processed in BGR format, removing the redundant RGB→BGR conversion preserved the original colors.”
 
 ## Data Preprocessing Pipeline
 Step-by-step:
