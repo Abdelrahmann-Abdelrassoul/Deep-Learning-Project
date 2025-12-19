@@ -13,8 +13,14 @@ KeyFrameDetection/
 │   ├── extract_frames.py
 │   └── dataset_loader.py
 │
+├── results/
+│   ├── autoencoder_keyframes/
+│   └── cnn_lstm_keyframes/
+|
 ├── models/
+│   ├── autoencoder.h5
 │   ├── autoencoder.py
+│   ├── cnn_lstm.h5
 │   └── cnn_lstm.py
 │
 ├── training/
@@ -42,6 +48,8 @@ KeyFrameDetection/
 “To avoid over-segmentation caused by transient reconstruction error spikes, short adjacent scenes were merged using a minimum temporal duration constraint.”
 
 “Color differences were initially observed due to unnecessary color space conversion during frame saving. Since frames were loaded and processed in BGR format, removing the redundant RGB→BGR conversion preserved the original colors.”
+
+“We implemented two unsupervised/semi-supervised keyframe detection pipelines: an Autoencoder-based reconstruction error method and a CNN+LSTM temporal importance scoring method. Both pipelines follow identical scene segmentation logic to allow fair comparison.”
 
 ## Data Preprocessing Pipeline
 Step-by-step:

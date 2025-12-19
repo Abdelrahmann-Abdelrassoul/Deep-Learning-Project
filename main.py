@@ -9,8 +9,10 @@ Main script to run the full key frame detection training pipeline.
 from preprocessing.extract_frames import extract_summe_dataset
 from preprocessing.dataset_loader import load_frames_dataset
 from training.train_autoencoder import train_autoencoder
-from training.train_cnn_lstm import train_cnn_lstm_model
+from training.train_cnn_lstm import train_cnn_lstm
 from inference.detect_keyframes_ae import detect_keyframes_autoencoder
+from inference.detect_keyframes_lstm import detect_keyframes_cnn_lstm
+
 # -----------------------------
 # Configuration Variables
 # -----------------------------
@@ -24,8 +26,7 @@ EPOCHS_AE = 15
 
 SEQ_LEN = 20
 BATCH_SIZE_LSTM = 2
-EPOCHS_LSTM = 2
-
+EPOCHS_LSTM = 30
 
 TEST_FRAMES_DIR = "data/test/frames"
 
@@ -38,9 +39,9 @@ TEST_FRAMES_DIR = "data/test/frames"
 # -----------------------------
 # Step 2: Load frames dataset
 # -----------------------------
-# print("[STEP 2] Loading frames dataset for training...")
-# frames_dataset = load_frames_dataset(SUMME_FRAMES_DIR, img_size=IMG_SIZE)
-# print(f"[INFO] Total frames loaded: {frames_dataset.shape[0]}")
+print("[STEP 2] Loading frames dataset for training...")
+frames_dataset = load_frames_dataset(SUMME_FRAMES_DIR, img_size=IMG_SIZE)
+print(f"[INFO] Total frames loaded: {frames_dataset.shape[0]}")
 
 # # -----------------------------
 # # Step 3: Train Autoencoder
@@ -55,32 +56,49 @@ TEST_FRAMES_DIR = "data/test/frames"
 #     save_path="models/autoencoder.h5"
 # )
 
-print("[STEP 5] Detecting keyframes using Autoencoder...")
+# print("[STEP 5] Detecting keyframes using Autoencoder...")
 
-keyframes_ae, errors_ae = detect_keyframes_autoencoder(
-    frames_dir=TEST_FRAMES_DIR,
-    model_path="models/autoencoder.h5",
-    img_size=IMG_SIZE,
-    diff_percentile=90,
-    min_scene_len=3,
-    visualize=True,
-    save_keyframes=True,
-    output_dir="results/autoencoder_keyframes"
-)
+# keyframes_ae, errors_ae = detect_keyframes_autoencoder(
+#     frames_dir=TEST_FRAMES_DIR,
+#     model_path="models/autoencoder.h5",
+#     img_size=IMG_SIZE,
+#     diff_percentile=90,
+#     min_scene_len=3,
+#     visualize=True,
+#     save_keyframes=True,
+#     output_dir="results/autoencoder_keyframes"
+# )
 
 
-print("[DONE] Autoencoder keyframe detection completed.")
+# print("[DONE] Autoencoder keyframe detection completed.")
 
 # -----------------------------
 # Step 4: Train CNN + LSTM
 # -----------------------------
-# print("[STEP 4] Training CNN + LSTM...")
-# train_cnn_lstm_model(
-#     frames_dataset,
-#     seq_len=SEQ_LEN,
-#     batch_size=BATCH_SIZE_LSTM,
-#     epochs=EPOCHS_LSTM,
-#     save_path="models/cnn_lstm.h5"
-# )
+print("[STEP 4] Training CNN + LSTM...")
+train_cnn_lstm(
+    frames_dataset,
+    seq_len=SEQ_LEN,
+    batch_size=BATCH_SIZE_LSTM,
+    max_epochs=EPOCHS_LSTM,
+    save_path="models/cnn_lstm.h5"
+)
+print("[DONE] CNN+LSTM training completed.")
+
+
+print("[STEP 5] Detecting keyframes using CNN+LSTM...")
+
+detect_keyframes_cnn_lstm(
+    frames_dir=TEST_FRAMES_DIR,
+    model_path="models/cnn_lstm.h5",
+    img_size=IMG_SIZE,
+    seq_len=SEQ_LEN,
+    score_percentile=90,
+    min_scene_len=5,
+    visualize=True,
+    save_keyframes=True,
+    output_dir="results/cnn_lstm_keyframes"
+)
+print("[DONE] CNN+LSTM keyframe detection completed.")
 
 # print("[DONE] Training pipeline completed successfully!")
