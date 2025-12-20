@@ -24,3 +24,6 @@ data/SumME
 data/test/frames
 results/
 *.jpg
+
+# models
+*.h5

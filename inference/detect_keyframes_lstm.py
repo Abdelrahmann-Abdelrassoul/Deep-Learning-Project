@@ -9,9 +9,9 @@ from preprocessing.dataset_loader import load_frames_dataset
 def detect_keyframes_cnn_lstm(
     frames_dir,
     model_path,
-    img_size=(224, 224),
+    img_size=(224,224),
     seq_len=20,
-    score_percentile=90,
+    diff_percentile=90,
     min_scene_len=5,
     visualize=True,
     save_keyframes=True,
@@ -19,17 +19,18 @@ def detect_keyframes_cnn_lstm(
 ):
     """
     Scene-based keyframe detection using CNN+LSTM importance scores.
+    AE-equivalent logic (diff-based).
     Returns and saves ORIGINAL frames.
     """
 
     # -----------------------------
-    # Load frames (ORIGINAL)
+    # Load frames
     # -----------------------------
     print("[INFO] Loading frames...")
     frames = load_frames_dataset(frames_dir, img_size=img_size)
 
     # -----------------------------
-    # Load model
+    # Load CNN+LSTM
     # -----------------------------
     print("[INFO] Loading CNN+LSTM...")
     model = load_model(model_path, compile=False)
@@ -37,19 +38,21 @@ def detect_keyframes_cnn_lstm(
     # -----------------------------
     # Build sequences
     # -----------------------------
-    sequences = []
-    for i in range(len(frames) - seq_len):
-        sequences.append(frames[i:i + seq_len])
-
-    sequences = np.array(sequences)
+    print("[INFO] Building sequences...")
+    sequences = np.array([
+        frames[i:i + seq_len]
+        for i in range(len(frames) - seq_len)
+    ])
 
     # -----------------------------
     # Predict importance scores
     # -----------------------------
-    print("[INFO] Predicting scores...")
+    print("[INFO] Predicting importance scores...")
     preds = model.predict(sequences, verbose=0)
 
-    # Flatten sequence predictions into per-frame scores
+    # -----------------------------
+    # Aggregate to per-frame score
+    # -----------------------------
     scores = np.zeros(len(frames))
     counts = np.zeros(len(frames))
 
@@ -62,10 +65,10 @@ def detect_keyframes_cnn_lstm(
     scores /= np.maximum(counts, 1)
 
     # -----------------------------
-    # 1. Frame-to-frame score difference
+    # 1. Frame-to-frame score difference (AE STYLE)
     # -----------------------------
     diffs = np.abs(np.diff(scores))
-    threshold = np.percentile(diffs, score_percentile)
+    threshold = np.percentile(diffs, diff_percentile)
     scene_boundaries = np.where(diffs > threshold)[0] + 1
 
     # -----------------------------
@@ -118,7 +121,7 @@ def detect_keyframes_cnn_lstm(
         plt.scatter(keyframes, scores[keyframes], c="red", label="Scene Keyframes")
         plt.xlabel("Frame Index")
         plt.ylabel("Importance Score")
-        plt.title("Scene-based CNN+LSTM Keyframe Detection")
+        plt.title("AE-equivalent CNN+LSTM Keyframe Detection")
         plt.legend()
         plt.tight_layout()
 

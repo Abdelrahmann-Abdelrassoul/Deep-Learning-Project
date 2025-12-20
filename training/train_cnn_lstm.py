@@ -1,21 +1,34 @@
 import os
 import numpy as np
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.utils import Sequence
 from models.cnn_lstm import build_cnn_lstm
 
 
-def create_sequences(frames, seq_len=20):
-    """
-    Weakly supervised sequences.
-    """
-    X, y = [], []
-    for i in range(len(frames) - seq_len):
-        X.append(frames[i:i + seq_len])
+class FrameSequenceGenerator(Sequence):
+    def __init__(self, frames, seq_len=20, batch_size=2):
+        self.frames = frames.astype("float32")   # 🔴 IMPORTANT
+        self.seq_len = seq_len
+        self.batch_size = batch_size
+        self.indices = np.arange(len(frames) - seq_len)
 
-        # Weak labels (same idea you used)
-        y.append(np.random.randint(0, 2, size=(seq_len, 1)))
+    def __len__(self):
+        return int(np.ceil(len(self.indices) / self.batch_size))
 
-    return np.array(X), np.array(y)
+    def __getitem__(self, idx):
+        batch_idx = self.indices[idx * self.batch_size:(idx + 1) * self.batch_size]
+
+        X = np.zeros(
+            (len(batch_idx), self.seq_len, *self.frames.shape[1:]),
+            dtype="float32"
+        )
+        y = np.zeros((len(batch_idx), self.seq_len, 1), dtype="float32")
+
+        for i, start in enumerate(batch_idx):
+            X[i] = self.frames[start:start + self.seq_len]
+            y[i] = np.random.randint(0, 2, size=(self.seq_len, 1))
+
+        return X, y
 
 
 def train_cnn_lstm(
@@ -23,12 +36,15 @@ def train_cnn_lstm(
     seq_len=20,
     batch_size=2,
     max_epochs=30,
-    save_path="models/cnn_lstm.h5",
-    val_split=0.1
+    save_path="models/cnn_lstm.h5"
 ):
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-    X, y = create_sequences(frames, seq_len)
+    generator = FrameSequenceGenerator(
+        frames=frames,
+        seq_len=seq_len,
+        batch_size=batch_size
+    )
 
     model = build_cnn_lstm(
         input_shape=(seq_len, frames.shape[1], frames.shape[2], 3)
@@ -36,11 +52,8 @@ def train_cnn_lstm(
 
     model.summary()
 
-    # -----------------------------
-    # Callbacks (same philosophy as AE)
-    # -----------------------------
     early_stop = EarlyStopping(
-        monitor="val_loss",
+        monitor="loss",
         patience=5,
         restore_best_weights=True,
         verbose=1
@@ -48,23 +61,19 @@ def train_cnn_lstm(
 
     checkpoint = ModelCheckpoint(
         save_path,
-        monitor="val_loss",
+        monitor="loss",
         save_best_only=True,
         verbose=1
     )
 
     model.fit(
-        X,
-        y,
-        validation_split=val_split,
+        generator,
         epochs=max_epochs,
-        batch_size=batch_size,
-        shuffle=True,
         callbacks=[early_stop, checkpoint],
         verbose=1
     )
 
     print(f"[INFO] CNN+LSTM training completed.")
-    print(f"[INFO] Best model saved at {save_path}")
+    print(f"[INFO] Model saved at {save_path}")
 
     return model

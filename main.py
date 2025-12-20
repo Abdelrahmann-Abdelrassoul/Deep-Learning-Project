@@ -39,9 +39,9 @@ TEST_FRAMES_DIR = "data/test/frames"
 # -----------------------------
 # Step 2: Load frames dataset
 # -----------------------------
-print("[STEP 2] Loading frames dataset for training...")
-frames_dataset = load_frames_dataset(SUMME_FRAMES_DIR, img_size=IMG_SIZE)
-print(f"[INFO] Total frames loaded: {frames_dataset.shape[0]}")
+# print("[STEP 2] Loading frames dataset for training...")
+# frames_dataset = load_frames_dataset(SUMME_FRAMES_DIR, img_size=IMG_SIZE)
+# print(f"[INFO] Total frames loaded: {frames_dataset.shape[0]}")
 
 # # -----------------------------
 # # Step 3: Train Autoencoder
@@ -75,30 +75,33 @@ print(f"[INFO] Total frames loaded: {frames_dataset.shape[0]}")
 # -----------------------------
 # Step 4: Train CNN + LSTM
 # -----------------------------
-print("[STEP 4] Training CNN + LSTM...")
-train_cnn_lstm(
-    frames_dataset,
-    seq_len=SEQ_LEN,
-    batch_size=BATCH_SIZE_LSTM,
-    max_epochs=EPOCHS_LSTM,
-    save_path="models/cnn_lstm.h5"
-)
-print("[DONE] CNN+LSTM training completed.")
+# print("[STEP 4] Training CNN + LSTM...")
+# train_cnn_lstm(
+#     frames_dataset,
+#     seq_len=SEQ_LEN,
+#     batch_size=BATCH_SIZE_LSTM,
+#     max_epochs=EPOCHS_LSTM,
+#     save_path="models/cnn_lstm.h5"
+# )
+# print("[DONE] CNN+LSTM training completed.")
 
 
 print("[STEP 5] Detecting keyframes using CNN+LSTM...")
 
-detect_keyframes_cnn_lstm(
+keyframes, scores = detect_keyframes_cnn_lstm(
     frames_dir=TEST_FRAMES_DIR,
     model_path="models/cnn_lstm.h5",
-    img_size=IMG_SIZE,
-    seq_len=SEQ_LEN,
-    score_percentile=90,
-    min_scene_len=5,
+    img_size=(224, 224),
+    seq_len=20,
+    diff_percentile=85,   # adjust sensitivity
+    min_scene_len=3,
     visualize=True,
     save_keyframes=True,
     output_dir="results/cnn_lstm_keyframes"
 )
+
+print("Detected keyframes indices:", keyframes)
+
 print("[DONE] CNN+LSTM keyframe detection completed.")
 
 # print("[DONE] Training pipeline completed successfully!")
